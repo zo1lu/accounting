@@ -1,9 +1,8 @@
-
+import Form from '../../components/Form'
 export default function Accounting(){
     return(
-        <>
-            <h1>Test</h1>
-            <section></section>
-        </>
+        <div className='w-screen flex justify-center'>
+            <Form />
+        </div>
     )
 }
