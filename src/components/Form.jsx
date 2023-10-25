@@ -51,7 +51,7 @@ export default function Form(){
         //get data
         try{
             const accountingListRef = collection(db, "accountingList");
-            const q = query(accountingListRef, orderBy("cost"));
+            const q = query(accountingListRef, orderBy("timeStamp"));
             const querySnapshot = await getDocs(q);
             rawList=[]
             querySnapshot.forEach((doc) => {
