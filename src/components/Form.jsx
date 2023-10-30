@@ -3,14 +3,13 @@ import { useState, useEffect, useRef } from 'react'
 import ListRow from './ListRow'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-
-import { doc, setDoc, getDocs, deleteDoc } from "firebase/firestore"; 
+import { doc, getDocs, deleteDoc } from "firebase/firestore"; 
 import { collection, addDoc } from "firebase/firestore"; 
-import { query, orderBy, limit } from "firebase/firestore";  
-import {db} from "../firebase"
+import { query, orderBy, where } from "firebase/firestore";  
+import { db, auth } from "../firebase/firebase"
 import { serverTimestamp } from 'firebase/firestore'
+import { logout } from '../firebase/firebase'
 
-let rawList = []
 // const rawList = [
 //     {
 //         type:"income",
@@ -38,46 +37,38 @@ function getSum(list){
     return sum
 }
 
-
-export default function Form(){
+export default function Form({user}){
+    let rawList = []
     const [balance, setBalance] = useState(()=>getSum(rawList))
     const [list, setList] = useState([])
-    // const [listStatus, setListStatus] = useState(true)
     const typeRef = useRef()
     const titleRef = useRef()
     const costRef = useRef()
+    const route = useRouter()
 
-    async function getDataFromFirestore(){
+    async function getDataFromFirestore(uid){
         //get data
+        // const user = auth.currentUser
+        // console.log(user)
         try{
             const accountingListRef = collection(db, "accountingList");
-            const q = query(accountingListRef, orderBy("timeStamp"));
+            const q = query(accountingListRef, where("userId", "==", uid), orderBy("timeStamp"));
             const querySnapshot = await getDocs(q);
             rawList=[]
             querySnapshot.forEach((doc) => {
-            rawList.push({id: doc.id, ...doc.data()})
+                // console.log(doc.data())
+                rawList.push({id: doc.id, ...doc.data()})
             });
             setList([...rawList])
         }catch(e){
             console.log(e)
         }
     }
-    // const ref = useRef(null)
-    // function checkDataStatus(){
-    //     console.log("Hi")
-    // }
-    useEffect(() => {
-        getDataFromFirestore();
-        // ref.current = setInterval(()=>{
-        //     return checkDataStatus()
-        // }, 10 * 1000);
-
-        // return () => {
-        //     if(ref.current){
-        //     clearInterval(ref.current)
-        //     }
-        // }
-    }, [])
+    useEffect(()=>{
+        if(user.uid){
+            getDataFromFirestore(user.uid)
+        }
+    },[user])
 
     useEffect(()=>{
         setBalance(getSum(list))
@@ -93,11 +84,12 @@ export default function Form(){
                 type: type,
                 title: title,
                 cost: cost,
-                timeStamp: serverTimestamp()
+                timeStamp: serverTimestamp(),
+                userId: user.uid
             });
-            console.log(docRef)
-            console.log("Add")
-            getDataFromFirestore()
+            // console.log(docRef)
+            // console.log("Add")
+            getDataFromFirestore(user.uid)
         }catch(e){
             console.error(e)
         }
@@ -108,12 +100,17 @@ export default function Form(){
 
     async function deleteListByKey(key){
         await deleteDoc(doc(db, "accountingList", key))
-        getDataFromFirestore()
+        getDataFromFirestore(user.uid)
     }
-
+    function logoutHandler(){
+        logout()
+        route.push("/")
+    }
 
     return (
     <div className='w-full h-full flex flex-col items-center'>
+        <p className='w-30 h-10 px-3 absolute top-5 left-5 text-lg'>Hi, {user.email}</p>
+        <button className='w-30 h-10 px-3 border-solid border-2 border-sky-950 rounded-md absolute top-5 right-5' onClick={logoutHandler}>Log out</button>
         <form className="w-[700px] h-fit flex flex-row justify-between p-5" onSubmit={handleSubmit}>
             <select className='w-25 h-10 px-3 border-solid border-2 border-sky-950 rounded-md' ref={typeRef}> 
                 <option value="income">Income</option>
