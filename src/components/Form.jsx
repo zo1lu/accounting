@@ -47,9 +47,6 @@ export default function Form({user}){
     const route = useRouter()
 
     async function getDataFromFirestore(uid){
-        //get data
-        // const user = auth.currentUser
-        // console.log(user)
         try{
             const accountingListRef = collection(db, "accountingList");
             const q = query(accountingListRef, where("userId", "==", uid), orderBy("timeStamp"));
