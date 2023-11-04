@@ -15,19 +15,21 @@ export default function Accounting(){
     useEffect(()=>{
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                setUser({uid: user.uid, email: user.email})
+                setUser({uid: user.uid, email: user.email || ""})
             } else {
                 router.push("../login")
             }
         })
         return unsubscribe
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     return(
         <>
+            {user.uid?
             <div className='w-screen flex justify-center'>
                 <Form user={user}/>
-            </div>
+            </div>:<></>}
         </>
     )
 }

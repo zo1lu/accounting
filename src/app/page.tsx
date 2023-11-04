@@ -12,6 +12,7 @@ export default function Home() {
   useEffect(()=>{
     const listner = onAuthStateChange(setUser)
     return listner
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[])
 
   function logout(){
